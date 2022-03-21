@@ -8,9 +8,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: "Ko Ko Kyaw Flutter",
-      home: WordGenerator(),
+      theme: ThemeData(
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          elevation: 1
+        ),
+      ),
+      home: const WordGenerator(),
     );
   }
 }
@@ -26,13 +33,43 @@ class WordGenerator extends StatefulWidget {
 
 class _RandomWordState extends State<WordGenerator> {
   final _list = <WordPair>[];
+  final _saved = <WordPair>{};
+  final _biggerFont = const TextStyle(fontSize: 18);
 
   @override
   Widget build(BuildContext randomWordStateContext) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chit Lar')),
+      appBar: AppBar(
+        title: const Text('Chit Lar'),
+        leading: const Icon(Icons.add),
+        actions: [
+          IconButton(onPressed: _clickMenu, icon: const Icon(Icons.menu))
+        ],
+      ),
       body: _names(randomWordStateContext),
     );
+  }
+
+  void _clickMenu() {
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (context) {
+      final title = _saved.map((e) => ListTile(
+            title: Text(e.asPascalCase),
+          ));
+
+      final divided = title.isNotEmpty
+          ? ListTile.divideTiles(
+              context: context,
+              tiles: title,
+            ).toList()
+          : <Widget>[];
+
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('This is second page'),
+        ),
+        body: ListView(children: divided),
+      );
+    }));
   }
 
   Widget _names(BuildContext listContext) {
@@ -50,8 +87,27 @@ class _RandomWordState extends State<WordGenerator> {
   }
 
   Widget _nameRow(WordPair name) {
+    final isAdySaved = _saved.contains(name);
     return ListTile(
-      title: Text(name.asPascalCase),
+      title: Text(
+        name.asPascalCase,
+        style: _biggerFont,
+      ),
+      trailing: Icon(
+        isAdySaved ? Icons.favorite : Icons.favorite_border,
+        color: isAdySaved ? Colors.red : null,
+        semanticLabel: isAdySaved ? 'Remove from list' : 'Save to list',
+      ),
+      leading: const Icon(Icons.start),
+      onTap: () {
+        setState(() {
+          if (isAdySaved) {
+            _saved.remove(name);
+          } else {
+            _saved.add(name);
+          }
+        });
+      },
     );
   }
 }
